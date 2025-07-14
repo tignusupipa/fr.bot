@@ -1,4 +1,6 @@
 import os
+import threading
+from health_server import app as health_app
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, CallbackQueryHandler,
@@ -334,7 +336,11 @@ conv_handler = ConversationHandler(
     ]
 )
 
+def run_health_server():
+    health_app.run(host="0.0.0.0", port=8080)
+
 def main():
+    threading.Thread(target=run_health_server).start()  # Avvia /health per Render
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(conv_handler)
     app.add_handler(CommandHandler('catalogo', catalogo))

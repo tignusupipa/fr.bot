@@ -26,7 +26,6 @@ categories = {
     'richieste': 'Richieste personalizzate'
 }
 
-# Ora ogni prodotto ha nome e immagine
 products = {
     'tech': {
         'apple_watch_series_10': {
@@ -34,18 +33,17 @@ products = {
             'image': 'https://ysduwlxidmxq4xj3.public.blob.vercel-storage.com/apple-7Mt3hCk8q5ckGmpUui8vQySHNdjDgA.png'
         },
         'cuffie_sony_WH': {
-            'name': ' Cuffie Sony WH-1000XM4',
-            'image': 'https://fast-reseller.vercel.app/cuffie.jpg'  # metti link giusto immagine
+            'name': 'Cuffie Sony WH-1000XM4',
+            'image': 'https://fast-reseller.vercel.app/cuffie.jpg'
         },
-        'Apple_AirPods_Pro': {
+        'apple_airpods_pro': {
             'name': 'Apple AirPods Pro',
-            'image': 'https://fast-reseller.vercel.app/airpod.jpg'  # metti link giusto immagine
+            'image': 'https://fast-reseller.vercel.app/airpod.jpg'
         },
         'speaker_bluetooth_jbl': {
             'name': 'Speaker Bluetooth JBL',
-            'image': 'https://fast-reseller.vercel.app/img/speaker.jpg'  # come nel statico, ma qui per dinamico
+            'image': 'https://fast-reseller.vercel.app/img/speaker.jpg'
         }
-        # aggiungi qui altri prodotti tech se vuoi
     },
     'maglie': {
         'manu_ronaldo_2007': {
@@ -136,6 +134,7 @@ products = {
         }
     }
 }
+
 active_orders = {}
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -143,6 +142,43 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Benvenuto su FastReseller! Scegli una categoria:", reply_markup=reply_markup)
     return CHOOSING_CATEGORY
+
+async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [[InlineKeyboardButton(name, callback_data=key)] for key, name in categories.items()]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Ecco il catalogo. Scegli una categoria:", reply_markup=reply_markup)
+    return CHOOSING_CATEGORY
+
+async def contatti(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = (
+        "📞 *Contattaci*\n\n"
+        "📧 Email: fastreseller10@gmail.com\n"
+        "📸 Instagram: https://www.instagram.com/fastreseller\n"
+        "🛒 Vinted: https://www.vinted.it/member/267598057-fastreseller10\n"
+    )
+    await update.message.reply_text(text, parse_mode='Markdown')
+
+async def aiuto(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = (
+        "💡 *Come usare FastReseller Bot*\n\n"
+        "/start o /catalogo - Sfoglia le categorie e prodotti\n"
+        "/ordina - Avvia un ordine guidato\n"
+        "/contatti - Vedi i nostri recapiti\n"
+        "/info - Informazioni sul negozio\n\n"
+        "Se vuoi ordinare, scegli la categoria e poi il prodotto. Segui le istruzioni!\n"
+        "Per richieste personalizzate, scegli la categoria 'Richieste personalizzate'."
+    )
+    await update.message.reply_text(text, parse_mode='Markdown')
+
+async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = (
+        "🏪 *Fast Reseller*\n"
+        "Vendita di maglie da calcio, tech, profumi, sneakers e abbigliamento.\n"
+        "Sito web: https://fastreseller.it\n"
+        "Email: fastreseller10@gmail.com\n"
+        "Seguici sui social per offerte e novità!"
+    )
+    await update.message.reply_text(text, parse_mode='Markdown')
 
 async def choose_category(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
@@ -184,21 +220,11 @@ async def choose_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
         'first_name': first_name
     }
 
-    # Prima cambio immagine (senza caption)
     await query.edit_message_media(
         media=InputMediaPhoto(product['image'])
     )
-    # Poi mando testo formattato
     await query.message.reply_text(
         f"Hai scelto: *{product['name']}*\nQuante unità vuoi ordinare?",
-        parse_mode='Markdown'
-    )
-    return CHOOSING_QTY
-
-
-    # Mando foto + testo riassunto prodotto scelto
-    await query.edit_message_media(
-        media=InputMediaPhoto(product['image'], caption=f"Hai scelto: *{product['name']}*\nQuante unità vuoi ordinare?"),
         parse_mode='Markdown'
     )
     return CHOOSING_QTY
@@ -288,7 +314,11 @@ def send_email(subject, body):
         print(f"Errore invio email: {e}")
 
 conv_handler = ConversationHandler(
-    entry_points=[CommandHandler('start', start), CommandHandler('ordina', start)],
+    entry_points=[
+        CommandHandler('start', start),
+        CommandHandler('ordina', start),
+        CommandHandler('catalogo', start)
+    ],
     states={
         CHOOSING_CATEGORY: [CallbackQueryHandler(choose_category)],
         CHOOSING_PRODUCT: [CallbackQueryHandler(choose_product)],
@@ -297,12 +327,20 @@ conv_handler = ConversationHandler(
         CONFIRMING: [MessageHandler(filters.Regex('^(si|no)$'), confirm_order)],
         REQUESTING: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_request)],
     },
-    fallbacks=[CommandHandler('start', start), CommandHandler('ordina', start)]
+    fallbacks=[
+        CommandHandler('start', start),
+        CommandHandler('ordina', start),
+        CommandHandler('catalogo', start)
+    ]
 )
 
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(conv_handler)
+    app.add_handler(CommandHandler('catalogo', catalogo))
+    app.add_handler(CommandHandler('contatti', contatti))
+    app.add_handler(CommandHandler('aiuto', aiuto))
+    app.add_handler(CommandHandler('info', info))
     app.run_polling()
 
 if __name__ == '__main__':

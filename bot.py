@@ -174,7 +174,7 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "🏪 *Fast Reseller*\n"
         "Vendita di maglie da calcio, tech, profumi, sneakers e abbigliamento.\n"
-        "Sito web: https://fastreseller.it\n"
+        "Sito web: https://fast-reseller.vercel.app\n"
         "Email: fastreseller10@gmail.com\n"
         "Seguici sui social per offerte e novità!"
     )
